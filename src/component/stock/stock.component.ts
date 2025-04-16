@@ -15,7 +15,7 @@ import { NgFor, NgIf } from '@angular/common';
   standalone: true,
   imports: [ReactiveFormsModule, NgFor, NgIf],
   templateUrl: './stock.component.html',
-  styleUrl: './stock.component.css',
+  styleUrls: ['./stock.component.css'],
 })
 export class StockComponent implements OnInit {
   stocks: Stock[] = [];
@@ -50,6 +50,7 @@ export class StockComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadStocks();
+
     this.activatedRoute.paramMap.subscribe((params) => {
       const id = params.get('id');
       if (id) {
@@ -61,55 +62,87 @@ export class StockComponent implements OnInit {
   }
 
   loadStocks() {
-    this.stockService.getStocks().subscribe(
-      (data) => {
-        if (data && data.items) {
-          this.stocks = data.items;
+    this.stockService.getStocks().then(
+      (response) => {
+        if (response && response.data.items) {
+          this.stocks = response.data.items;
         }
       },
-      () => {}
+      (error) => {
+        console.error('Error loading stocks:', error);
+      }
     );
   }
 
   loadStock(id: string) {
-    this.stockService.getStock(id).subscribe((data) => {
-      this.currentStockId = id;
-      this.isEditing = true;
-      this.isCreating = false;
-      this.stockForm.setValue({
-        symbol: data.symbol,
-        companyName: data.companyName,
-        purchase: data.purchase,
-        lastDiv: data.lastDiv,
-        industry: data.industry,
-        marketCap: data.marketCap,
-      });
-    });
+    this.stockService.getStock(id).then(
+      (response) => {
+        const data = response.data;
+        this.currentStockId = id;
+        this.isEditing = true;
+        this.isCreating = false;
+        this.stockForm.setValue({
+          symbol: data.symbol,
+          companyName: data.companyName,
+          purchase: data.purchase,
+          lastDiv: data.lastDiv,
+          industry: data.industry,
+          marketCap: data.marketCap,
+        });
+      },
+      (error) => {
+        console.error('Error loading stock:', error);
+      }
+    );
+  }
+
+  onEdit(id: string) {
+    this.router.navigate([`/stocks/${id}`]);
   }
 
   onSubmit() {
     if (this.stockForm.valid) {
       if (this.isEditing && this.currentStockId) {
         this.stockService
-          .updateStock(this.currentStockId, this.stockForm.value)
-          .subscribe(() => {
-            this.router.navigate(['/stocks']);
-            this.isEditing = false;
-          });
+          .updateStock({ ...this.stockForm.value, id: this.currentStockId })
+          .then(
+            (response) => {
+              console.log('Stock updated successfully', response);
+              this.router.navigate(['/stocks']);
+              this.isEditing = false;
+              this.loadStocks();
+            },
+            (error) => {
+              console.error('Error updating stock', error);
+            }
+          );
       } else {
-        this.stockService.createStock(this.stockForm.value).subscribe(() => {
-          this.router.navigate(['/stocks']);
-          this.isCreating = false;
-        });
+        this.stockService.createStock(this.stockForm.value).then(
+          (response) => {
+            console.log('Stock created successfully', response);
+            this.router.navigate(['/stocks']);
+            this.isCreating = false;
+            this.loadStocks();
+          },
+          (error) => {
+            console.error('Error creating stock', error);
+          }
+        );
       }
     }
   }
 
   onDelete(id: string) {
     if (confirm('Are you sure you want to delete this stock?')) {
-      this.stockService.deleteStock(id).subscribe(() => {
-        this.loadStocks();
-      });
+      this.stockService.deleteStock(id).then(
+        (response) => {
+          console.log('Stock deleted successfully', response);
+          this.loadStocks();
+        },
+        (error) => {
+          console.error('Error deleting stock:', error);
+        }
+      );
     }
   }
 

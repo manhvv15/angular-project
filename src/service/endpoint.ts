@@ -7,6 +7,7 @@
 //   update: `${PREFIX}/stocks`,
 //   delete: `${PREFIX}/stocks/{id}`,
 
+import { register } from 'module';
 import { environment } from '../api.config';
 
 // };
@@ -17,4 +18,8 @@ export const stock = {
   create: `${environment.apiBaseUrl}${'/api/stocks'}`,
   update: `${environment.apiBaseUrl}${'/api/stocks'}`,
   delete: `${environment.apiBaseUrl}${'/api/stocks/{id}'}`,
+};
+export const user = {
+  login: `${environment.apiBaseUrl}${'/api/users/login'}`,
+  register: `${environment.apiBaseUrl}${'/api/users/register'}`,
 };

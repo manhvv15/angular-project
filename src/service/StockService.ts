@@ -1,35 +1,34 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import axios, { AxiosResponse } from 'axios';
 import { stock } from './endpoint';
-import { StockResponse } from '../types/stock';
+import { Stock, StockResponse } from '../types/stock';
 
 @Injectable({
   providedIn: 'root',
 })
 export class StockService {
-  constructor(private http: HttpClient) {}
+  constructor() {}
 
-  getStocks(): Observable<StockResponse> {
-    return this.http.get<StockResponse>(stock.getAll);
+  getStocks(): Promise<AxiosResponse<StockResponse>> {
+    return axios.get<StockResponse>(stock.getAll);
   }
 
-  getStock(id: string): Observable<any> {
+  getStock(id: string): Promise<AxiosResponse<any>> {
     const url = stock.getById.replace('{id}', id);
-    return this.http.get<any>(url);
+    return axios.get<any>(url);
   }
 
-  createStock(stock: any): Observable<any> {
-    return this.http.post<any>(stock.create, stock);
+  createStock(data: Stock): Promise<AxiosResponse<any>> {
+    return axios.post(stock.create, data);
   }
 
-  updateStock(id: string, stock: any): Observable<any> {
-    const url = stock.update.replace('{id}', id);
-    return this.http.put<any>(url, stock);
+  updateStock(data: Stock): Promise<AxiosResponse> {
+    const url = stock.update;
+    return axios.put(url, data);
   }
 
-  deleteStock(id: string): Observable<any> {
+  deleteStock(id: string): Promise<AxiosResponse<any>> {
     const url = stock.delete.replace('{id}', id);
-    return this.http.delete<any>(url);
+    return axios.delete<any>(url);
   }
 }
